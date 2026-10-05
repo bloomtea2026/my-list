@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MyDesk</title>
+<style>
+:root{--bg:#0f1b2d;--ink:#eef3f8;--mut:#9fb0c4;--card:rgba(255,255,255,.08);--line:rgba(255,255,255,.16);--acc:#f2b84b;--ok:#2e9e5b;--bad:#e0605a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eaf1f7;--ink:#13233a;--mut:#4d6079;--card:rgba(255,255,255,.7);--line:rgba(19,35,58,.15)}}
+:root[data-theme="light"]{--bg:#eaf1f7;--ink:#13233a;--mut:#4d6079;--card:rgba(255,255,255,.7);--line:rgba(19,35,58,.15)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;overflow-x:hidden}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden}
+.bg i{position:absolute;width:46vmax;height:46vmax;border-radius:50%;filter:blur(70px);opacity:.5;animation:f 18s ease-in-out infinite alternate}
+.bg i:nth-child(1){background:#2a6df4;left:-12%;top:-15%}
+.bg i:nth-child(2){background:#f2b84b;right:-15%;top:20%;animation-duration:23s}
+.bg i:nth-child(3){background:#1fb48a;left:20%;bottom:-25%;animation-duration:27s}
+@keyframes f{to{transform:translate(9vmax,6vmax) scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.bg i{animation:none}}
+.wrap{max-width:980px;margin:0 auto;padding:18px}
+.center{min-height:90vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:22px}
+h1.big{font:700 clamp(3rem,13vw,7rem)/1 Georgia,serif;margin:0;letter-spacing:-.03em}
+.glass{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+button,.btn{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:10px 18px;background:var(--acc);color:#1b1405;font-weight:700}
+button.g{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button.x{background:transparent;color:var(--bad);padding:4px 8px}
+button.go{font-size:1.4rem;padding:14px 56px;border-radius:40px}
+input,textarea,select{font:inherit;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(127,127,127,.12);color:var(--ink);outline:none}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--acc)}
+label{display:block;font-size:.85rem;color:var(--mut);margin:10px 0 4px}
+.auth{width:min(440px,100%);text-align:left}.auth h2{margin:0 0 6px}
+.row{display:flex;gap:10px;align-items:flex-end}.row>*{flex:1}.row>button{flex:0 0 auto}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px}
+.tabs button{white-space:nowrap;background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.tabs button.on{background:var(--acc);color:#1b1405}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.item{display:flex;align-items:center;gap:10px;padding:12px 14px;margin:8px 0;border-radius:14px;border:1px solid var(--line);background:var(--card);user-select:none;transition:background .25s}
+.item.done{background:var(--ok);color:#fff;border-color:var(--ok)}.item.done .t{text-decoration:line-through}
+.item .t{flex:1}.item small{color:var(--mut)}.item.done small{color:#e8fff0}
+.tick{width:22px;height:22px;border-radius:6px;border:2px solid currentColor;display:grid;place-items:center;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:12px}
+.grid .c{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);font-size:.8rem}
+.grid img,.grid video{width:100%;height:120px;object-fit:cover;display:block}.grid .c p{margin:6px 8px;word-break:break-all}
+.sc{overflow-x:auto;margin-top:12px}table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:.9rem}th{color:var(--mut);font-weight:600}
+.err{color:var(--bad);font-size:.85rem;min-height:1.1em;margin-top:8px}
+.mail{margin-top:10px;padding:10px;border-radius:10px;border:1px dashed var(--acc);font-size:.85rem}
+.empty{color:var(--mut);padding:18px 0;text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:30px;display:none;z-index:9}
+a{color:var(--acc)}
+</style>
+<style id="aesthetic-upgrade">
+/* Aesthetic visual upgrade */
+body{
+  background:radial-gradient(circle at top left,#17233d 0%,#0b1220 42%,#080d18 100%);
+}
+.bg{background:linear-gradient(120deg,rgba(17,24,39,.25),rgba(2,6,23,.5));}
+.bg::before,.bg::after{
+  content:"";position:absolute;inset:-20%;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,.12) 1px,transparent 1.5px);
+  background-size:36px 36px;opacity:.22;animation:stars 24s linear infinite;
+}
+.bg::after{background-size:58px 58px;opacity:.1;animation-duration:36s;animation-direction:reverse}
+@keyframes stars{to{transform:translate3d(60px,80px,0)}}
+.bg i{opacity:.58;mix-blend-mode:screen;animation:f 16s ease-in-out infinite alternate, glow 8s ease-in-out infinite alternate}
+.bg i:nth-child(1){background:linear-gradient(135deg,#7c3aed,#2563eb);box-shadow:0 0 120px rgba(124,58,237,.5)}
+.bg i:nth-child(2){background:linear-gradient(135deg,#f59e0b,#ec4899);box-shadow:0 0 120px rgba(236,72,153,.42)}
+.bg i:nth-child(3){background:linear-gradient(135deg,#06b6d4,#10b981);box-shadow:0 0 120px rgba(6,182,212,.42)}
+@keyframes glow{from{filter:blur(70px) saturate(105%)}to{filter:blur(95px) saturate(150%)}}
+.glass,.item,.tabs button,.grid .c{
+  box-shadow:0 18px 60px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06);
+}
+.glass{border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.055));}
+button,.btn{transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}
+button:hover,.btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(242,184,75,.22);filter:brightness(1.05)}
+button:active,.btn:active{transform:translateY(0) scale(.98)}
+.item{transition:transform .2s ease,background .25s ease,border-color .25s ease}
+.item:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.28)}
+input,textarea,select{backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:border-color .2s,box-shadow .2s,background .2s}
+input:focus,textarea:focus,select:focus{box-shadow:0 0 0 4px rgba(242,184,75,.10);background:rgba(255,255,255,.10)}
+.center{animation:fadeUp .7s ease both}
+.glass{animation:fadeUp .55s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+h1.big{
+  background:linear-gradient(90deg,#fff,#f2b84b,#8be9fd,#fff);background-size:220% auto;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:titleShine 7s linear infinite;
+  text-shadow:0 8px 36px rgba(0,0,0,.18);
+}
+@keyframes titleShine{to{background-position:220% center}}
+.tabs{scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs button{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#toast{box-shadow:0 12px 35px rgba(0,0,0,.35)}
+@media(max-width:640px){.wrap{padding:14px}.glass{border-radius:20px}.row{flex-wrap:wrap}.row>button{width:100%}.go{width:min(290px,90%)}}
+@media (prefers-reduced-motion:reduce){.bg::before,.bg::after,h1.big,.center,.glass{animation:none!important}}
+</style>
+
+<style id="dark-all">
+:root{
+  color-scheme:dark !important;
+  --bg:#05070d !important;
+  --ink:#f5f7ff !important;
+  --mut:#aeb7c9 !important;
+  --card:rgba(15,18,30,.72) !important;
+  --line:rgba(255,255,255,.14) !important;
+  --acc:#b9a7ff !important;
+  --ok:#35c982 !important;
+  --bad:#ff6b78 !important;
+}
+html,body{background:#05070d !important;color:#f5f7ff !important}
+body{
+  background:
+    radial-gradient(circle at 15% 10%,rgba(104,74,255,.16),transparent 30%),
+    radial-gradient(circle at 85% 25%,rgba(0,210,255,.10),transparent 28%),
+    #05070d !important;
+}
+input,textarea,select{
+  background:rgba(5,7,13,.82) !important;
+  color:#f5f7ff !important;
+  border-color:rgba(255,255,255,.16) !important;
+  color-scheme:dark !important;
+}
+input::placeholder,textarea::placeholder{color:#7f899d !important}
+select option{background:#0b0e17 !important;color:#f5f7ff !important}
+table{color:#f5f7ff !important}
+th{color:#aeb7c9 !important}
+a{color:#c7baff !important}
+button.g,.tabs button{
+  background:rgba(255,255,255,.055) !important;
+  color:#f5f7ff !important;
+  border-color:rgba(255,255,255,.14) !important;
+}
+button.g:hover,.tabs button:hover{
+  background:rgba(255,255,255,.10) !important;
+}
+.glass,.item,.grid .c{
+  background:rgba(12,15,25,.70) !important;
+  border-color:rgba(255,255,255,.13) !important;
+}
+.item.done{
+  background:#147a4d !important;
+  border-color:#147a4d !important;
+}
+.mail{
+  background:rgba(185,167,255,.06) !important;
+}
+#toast{
+  background:#f5f7ff !important;
+  color:#05070d !important;
+}
+</style>
+</head><body>
+<div class="bg"><i></i><i></i><i></i></div>
+<main id="app" class="wrap"></main><div id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),A=$('#app');
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ls={g(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},s(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast('Storage full')}}};
+function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',2600)}
+async function hash(p){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(p));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+const today=()=>new Date().toISOString().slice(0,10);
+let me=null,tab='todo',st={},vcode=null,vmail=null,okmail=null;
+/* Security: PBKDF2 key + AES-GCM encryption, data decrypted in memory only while logged in */
+const b64=u=>{let s='';for(const x of u)s+=String.fromCharCode(x);return btoa(s)},ub=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),hex=u=>[...u].map(x=>x.toString(16).padStart(2,'0')).join('');
+let M={},KEY=null,tm={},pend={},idleT;
+const dk=k=>'d:'+me+':'+k,D=(k,d=[])=>M[k]??d;
+async function derive(p,salt){const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(p),'PBKDF2',false,['deriveBits']);const b=new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:310000,hash:'SHA-256'},km,512));return{h:hex(b.slice(0,32)),key:await crypto.subtle.importKey('raw',b.slice(32),'AES-GCM',false,['encrypt','decrypt'])}}
+async function enc(buf){const iv=crypto.getRandomValues(new Uint8Array(12)),ct=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},KEY,buf)),o=new Uint8Array(12+ct.length);o.set(iv);o.set(ct,12);return o}
+async function dec(o,k=KEY){o=new Uint8Array(o);return crypto.subtle.decrypt({name:'AES-GCM',iv:o.slice(0,12)},k,o.slice(12))}
+const sv=async(k,v)=>ls.s(dk(k),b64(await enc(new TextEncoder().encode(JSON.stringify(v)))));
+function S(k,v){M[k]=v;pend[k]=v;clearTimeout(tm[k]);tm[k]=setTimeout(()=>{delete pend[k];sv(k,v)},250)}
+async function loadAll(){M={};const pre='d:'+me+':';for(const key of Object.keys(localStorage).filter(x=>x.startsWith(pre))){const k=key.slice(pre.length),raw=ls.g(key);try{M[k]=JSON.parse(new TextDecoder().decode(await dec(ub(raw))))}catch(e){M[k]=raw;await sv(k,raw)}}}
+async function out(msg){clearTimeout(idleT);const p=pend;pend={};Object.values(tm).forEach(clearTimeout);if(KEY)await Promise.all(Object.entries(p).map(([k,v])=>sv(k,v)));me=null;KEY=null;M={};welcome();if(msg)toast(msg)}
+function idle(){clearTimeout(idleT);idleT=setTimeout(()=>{if(me)out('Locked after 5 minutes of inactivity')},300000)}
+['click','keydown','touchstart','mousemove'].forEach(v=>addEventListener(v,()=>me&&idle(),{passive:true}));
+let hid=0;document.addEventListener('visibilitychange',()=>{if(document.hidden)hid=Date.now();else if(me&&hid&&Date.now()-hid>60000)out('Locked after being away')});
+const PW=/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/,tp=c=>document.querySelectorAll('.pw').forEach(i=>i.type=c?'text':'password'),SHOW='<label style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" style="width:auto" onchange="tp(this.checked)">Show passwords</label>';
+const dls=async()=>{try{return await window.claude.use('downloads')}catch(e){return null}};
+/* IndexedDB for files */
+let db;const idb=()=>db?Promise.resolve(db):new Promise((r,j)=>{try{const q=indexedDB.open('mydesk',1);q.onupgradeneeded=()=>q.result.createObjectStore('f',{keyPath:'id'});q.onsuccess=()=>r(db=q.result);q.onerror=()=>j()}catch(e){j(e)}});
+const tx=async(m,f)=>{const d=await idb();return new Promise((r,j)=>{const t=d.transaction('f',m),s=t.objectStore('f'),q=f(s);t.oncomplete=()=>r(q&&q.result);t.onerror=()=>j()})};
+/* Welcome */
+function welcome(){A.innerHTML=`<div class="center"><h1 class="big">Welcome</h1><p style="color:var(--mut);margin:0">Your tasks, contacts, files and money in one calm place.</p><button class="go" onclick="auth('signup')">Go</button></div>`}
+/* Auth */
+function auth(m,pre=''){
+A.innerHTML=`<div class="center"><div class="glass auth"><div class="tabs"><button class="${m=='signup'?'on':''}" onclick="auth('signup')">Sign up</button><button class="${m=='login'?'on':''}" onclick="auth('login',$('#le')?.value)">Log in</button></div>`+(m=='signup'?`
+<h2>Create account</h2><div class="row"><div><label>First name</label><input id="fn"></div><div><label>Last name</label><input id="ln"></div></div>
+<label>Email</label><div class="row"><input id="em" type="email" oninput="mailChg()"><button class="g" id="vb" onclick="sendCode()">Verify</button></div>
+<div id="vbox"></div>
+<label>Create password</label><input id="p1" class="pw" type="password"><label>Confirm password</label><input id="p2" class="pw" type="password"><p style="color:var(--mut);font-size:.8rem;margin:8px 0 0">Your data is encrypted with this password. If you forget it, the data cannot be recovered.</p>
+${SHOW}<div class="err" id="er"></div><button style="width:100%" onclick="signup()">Sign up</button>`:`
+<h2>Log in</h2><label>Email</label><input id="le" type="email" value="${E(pre)}"><label>Password</label><input id="lp" class="pw" type="password">
+${SHOW}<div class="err" id="er"></div><button style="width:100%" onclick="login()">Log in</button>`)+`</div></div>`}
+function mailChg(){if($('#em').value.trim().toLowerCase()!==okmail){}}
+function sendCode(){const e=$('#em').value.trim().toLowerCase();if(!/^\S+@\S+\.\S+$/.test(e))return $('#er').textContent='Enter a valid email first.';
+if(ls.g('users',{})[e])return $('#er').textContent='This email is already registered. Log in instead.';
+vcode=String(Math.floor(100000+Math.random()*900000));vmail=e;okmail=null;$('#er').textContent='';
+$('#vbox').innerHTML=`<div class="mail"><b>Demo inbox</b> — a real email can't be sent from this page, so your code appears here: <b>${vcode}</b></div><div class="row"><input id="cd" placeholder="6-digit code" inputmode="numeric"><button onclick="chk()">Confirm</button></div>`}
+function chk(){if(vmail&&$('#cd').value.trim()===vcode){okmail=vmail;$('#vbox').innerHTML=`<div class="mail" style="border-color:var(--ok)">✓ Email verified</div>`}else $('#er').textContent='Wrong code. Try again.'}
+async function signup(){const e=$('#em').value.trim().toLowerCase(),f=$('#fn').value.trim(),l=$('#ln').value.trim(),p=$('#p1').value,q=$('#p2').value,er=$('#er');
+if(!f||!l)return er.textContent='Enter first and last name.';if(okmail!==e)return er.textContent='Verify your email first.';
+if(!/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(p))return er.textContent='Password needs 8+ characters with a letter, a number and a symbol.';if(p!==q)return er.textContent='Passwords do not match.';
+const u=ls.g('users',{});const sl=crypto.getRandomValues(new Uint8Array(16)),dv=await derive(p,sl);u[e]={f,l,salt:b64(sl),h:dv.h};ls.s('users',u);okmail=vcode=vmail=null;toast('Account created. Please log in.');auth('login',e)}
+async function login(){const e=$('#le').value.trim().toLowerCase(),U=ls.g('users',{}),u=U[e],er=$('#er'),L=ls.g('lock',{}),l=L[e]||{n:0,until:0};
+if(l.until>Date.now())return er.textContent='Too many wrong tries. Wait '+Math.ceil((l.until-Date.now())/60000)+' min.';
+const p=$('#lp').value;let ok=false,r;
+if(u){if(u.salt){r=await derive(p,ub(u.salt));ok=r.h===u.h}else if(u.h===await hash(p)){ok=true;const sl=crypto.getRandomValues(new Uint8Array(16));r=await derive(p,sl);u.salt=b64(sl);u.h=r.h;U[e]=u;ls.s('users',U)}}
+if(!ok){l.n++;let m='Email or password is wrong.';if(l.n>=5){l.until=Date.now()+300000;l.n=0;m='Too many wrong tries. Locked for 5 minutes.'}L[e]=l;ls.s('lock',L);return er.textContent=m}
+delete L[e];ls.s('lock',L);me=e;KEY=r.key;await loadAll();st={};tab='todo';app();idle()}
+/* App shell */
+const TABS=[['todo','Today list'],['contacts','Contacts'],['docs','Documents'],['money','Income / Expense'],['web','Websites'],['notes','Notes']];
+function app(){const u=ls.g('users',{})[me];
+A.innerHTML=`<div class="top"><h2 style="margin:0">Hi, ${E(u.f)}</h2><button class="g" onclick="out()">Lock &amp; log out</button></div>
+<div class="tabs">${TABS.map(t=>`<button class="${tab==t[0]?'on':''}" onclick="tab='${t[0]}';st={};app()">${t[1]}</button>`).join('')}</div><div class="glass" id="main"></div>`;
+({todo,contacts,docs,money,web,notes})[tab]()}
+/* 1 Todo */
+function todo(){const L=D('todo').sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+$('#main').innerHTML=`<div class="row"><div><label>Date</label><input type="date" id="td" value="${today()}"></div><div><label>Time</label><input type="time" id="tt"></div></div>
+<label>Task</label><div class="row"><input id="tx" placeholder="What needs doing?" onkeydown="event.key=='Enter'&&addT()"><button onclick="addT()">Add</button></div>
+<p style="color:var(--mut);font-size:.85rem">Double-click a task when it's done — it turns green.</p>
+${L.length?L.map(i=>`<div class="item ${i.done?'done':''}" ondblclick="togT('${i.id}')"><span class="tick">${i.done?'✓':''}</span><span class="t">${E(i.text)}<br><small>${i.date} ${i.time||''}</small></span><button class="x" onclick="event.stopPropagation();delT('${i.id}')">✕</button></div>`).join(''):'<div class="empty">No tasks yet. Add your first one above.</div>'}`}
+function addT(){const x=$('#tx').value.trim();if(!x)return;const L=D('todo');L.push({id:Date.now()+'',date:$('#td').value,time:$('#tt').value,text:x,done:false});S('todo',L);todo()}
+function togT(id){const L=D('todo');const i=L.find(a=>a.id==id);i.done=!i.done;S('todo',L);todo()}
+function delT(id){S('todo',D('todo').filter(a=>a.id!=id));todo()}
+/* 2 Contacts */
+function contactForm(c=null){
+  const x=c||{};
+  return `<h3>${c?'Edit contact':'New contact profile'}</h3>
+  ${[['name','Name'],['phone','Phone number'],['email','Email id'],['company','Company name'],['address','Address'],['tags','Tags (comma separated)']].map(f=>`<label>${f[1]}</label><input id="c_${f[0]}" value="${E(x[f[0]]||'')}" ${f[0]=='phone'?'type="tel" inputmode="tel"':''}>`).join('')}
+  <label>Note</label><textarea id="c_note" rows="3">${E(x.note||'')}</textarea>
+  <div class="row" style="margin-top:14px"><button class="g" onclick="st={};contacts()">Cancel</button><button onclick="saveC(${c?`'${c.id}'`:'null'})">${c?'Update':'Save'}</button></div>`;
+}
+function contacts(){
+  const L=D('contacts'),v=st.v;
+  if(v=='form')return $('#main').innerHTML=contactForm();
+  if(v=='edit'){
+    const c=L.find(a=>a.id==st.id); if(!c){st={};return contacts()}
+    return $('#main').innerHTML=contactForm(c);
+  }
+  if(v=='view'){
+    const c=L.find(a=>a.id==st.id); if(!c){st={};return contacts()}
+    return $('#main').innerHTML=`<button class="g" onclick="st={};contacts()">← Back</button><h2>${E(c.name)}</h2>
+    ${[['phone','Phone number'],['email','Email id'],['company','Company'],['address','Address'],['tags','Tags'],['note','Note']].map(f=>`<label>${f[1]}</label><div>${E(c[f[0]])||'—'}</div>`).join('')}
+    <div class="row" style="margin-top:16px"><button onclick="st={v:'edit',id:'${c.id}'};contacts()">Edit contact</button><button class="x" onclick="S('contacts',D('contacts').filter(a=>a.id!='${c.id}'));st={};contacts()">Delete contact</button></div>`;
+  }
+  $('#main').innerHTML=`<div class="top"><h3 style="margin:0">Contacts</h3><button onclick="st={v:'form'};contacts()">+ Save contact</button></div>
+  ${L.length?L.map(c=>`<div class="item" style="cursor:pointer" onclick="st={v:'view',id:'${c.id}'};contacts()"><span class="t"><b>${E(c.name)}</b><br><small>${E(c.phone||'')} ${c.phone&&c.email?'·':''} ${E(c.email||'')}</small></span></div>`).join(''):'<div class="empty">No contacts yet.</div>'}`;
+}
+function saveC(id=null){
+  const keys=['name','phone','email','company','address','tags','note'], c={id:id||Date.now()+''};
+  keys.forEach(k=>c[k]=$('#c_'+k).value.trim());
+  if(!c.name)return toast('Name is required');
+  const L=D('contacts');
+  if(id){const i=L.findIndex(a=>a.id==id);if(i>=0)L[i]=c;toast('Contact updated')}
+  else{L.push(c);toast('Contact saved')}
+  S('contacts',L);st={};contacts();
+}
+/* Files (docs + ppt) */
+const X={photo:'.jpg,.jpeg,.png,.webp,.heif,.heic,.bmp,.tif,.tiff,.svg,.raw,.gif,image/*',video:'.mpeg,.mpg,.3gp,.m4v,.mkv,.flv,.webm,.avchd,.wmv,.avi,.mp4,.mov,video/*',sticker:'.jpg,.jpeg,.png,.webp,.heif,.heic,.bmp,.tif,.tiff,.svg,.raw,.gif,image/*',document:'.doc,.docx,.pdf,.txt,.rtf,.odt,.xls,.xlsx,.ppt,.pptx,.csv,.html,.epub',ppt:'.ppt,.pptx'};
+async function files(cat,el){
+ const all=(await tx('readonly',s=>s.getAll()).catch(()=>[]))||[];
+ const L=all.filter(f=>f.user==me&&f.cat==cat);
+ const bl=await Promise.all(L.map(async f=>f.blob||new Blob([await dec(f.enc)],{type:f.type})));
+ FB=bl;FN=L.map(f=>f.name);
+ el.innerHTML=`<label>Add files</label><input type="file" multiple accept="${X[cat]}" onchange="upF('${cat}',this.files)"><p style="color:var(--mut);font-size:.8rem;margin:6px 0 0">Encrypted and saved on this device only.</p><div class="grid">${L.map((f,i)=>{const u=URL.createObjectURL(bl[i]);const m=cat=='photo'||cat=='sticker'?`<img src="${u}" alt="">`:cat=='video'?`<video src="${u}" controls></video>`:'';return `<div class="c">${m}<p>${E(f.name)}</p><p><button class="g" onclick="saveF(${i})">Save</button> <button onclick="shareF(${i})">Share</button> <button class="x" onclick="delF('${f.id}','${cat}')">✕</button></p></div>`}).join('')||'<div class="empty">Nothing saved here yet.</div>'}</div>`;
+}
+let FB=[],FN=[];
+async function saveF(i){
+ const dl=await dls();if(!dl)return toast('Saving files is not available here');
+ try{await dl.save({filename:FN[i],data:FB[i]})}catch(e){if(e&&e.code=='rejected_extension')toast('This file type cannot be saved from here');else if(!e||e.code!='declined')toast('Could not save file')}
+}
+async function shareF(i){
+ const file=FB[i],name=FN[i]||'file';if(!file)return toast('File not available');
+ try{
+  const f=new File([file],name,{type:file.type||'application/octet-stream'});
+  if(navigator.share && (!navigator.canShare || navigator.canShare({files:[f]}))){
+   await navigator.share({title:name,text:'Shared from MyDesk',files:[f]});
+  }else toast('File sharing is not supported in this browser');
+ }catch(e){if(e&&e.name!='AbortError')toast('Could not share file')}
+}
+async function upF(cat,fs){
+ for(const f of fs)try{const rec={id:Date.now()+Math.random()+'',user:me,cat,name:f.name,type:f.type,enc:(await enc(await f.arrayBuffer())).buffer};await tx('readwrite',s=>s.put(rec))}
+ catch(e){toast('Could not save '+f.name)}
+ files(cat,$('#fz'));
+}
+async function delF(id,cat){await tx('readwrite',s=>s.delete(id));files(cat,$('#fz'))}
+function docs(){
+ const s=st.s||'photo';
+ $('#main').innerHTML=`<div class="tabs">${['photo','video','sticker','document'].map(k=>`<button class="${s==k?'on':''}" onclick="st={s:'${k}'};docs()">${k[0].toUpperCase()+k.slice(1)}</button>`).join('')}</div><div id="fz"></div>`;
+ files(s,$('#fz'));
+}
+/* 4 Money */
+const C={income:[['name','Name'],['company','Company name'],['date','Date','date'],['rs','Rs.','number'],['tea','How many gram tea theli?','number'],['address','Address']],expense:[['name','Name'],['company','Company name'],['date','Date','date'],['rs','Rs.','number'],['item','Item name'],['qty','How many items bought?','number'],['address','Address']]};
+function money(){const k=st.k||'income',L=D(k),c=C[k];
+$('#main').innerHTML=`<div class="tabs"><button class="${k=='income'?'on':''}" onclick="st={k:'income'};money()">Income</button><button class="${k=='expense'?'on':''}" onclick="st={k:'expense'};money()">Expense</button></div>
+<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr));margin:0">${c.map(f=>`<div><label>${f[1]}</label><input id="m_${f[0]}" type="${f[2]||'text'}" ${f[2]=='date'?`value="${today()}"`:''}></div>`).join('')}</div><p><button onclick="addM('${k}')">Add row</button></p>
+<div class="sc"><table><tr>${c.map(f=>`<th>${f[1]}</th>`).join('')}<th></th></tr>${L.map(r=>`<tr>${c.map(f=>`<td>${E(r[f[0]])}</td>`).join('')}<td><button class="x" onclick="S('${k}',D('${k}').filter(a=>a.id!='${r.id}'));money()">✕</button></td></tr>`).join('')}</table></div>
+${L.length?`<p><b>Total: Rs. ${L.reduce((a,r)=>a+(+r.rs||0),0).toLocaleString('en-IN')}</b></p>`:'<div class="empty">No rows yet.</div>'}
+<div class="card" style="margin-top:18px;overflow:hidden;"><h3 style="margin:0 0 5px">Year-wise Income & Expense</h3><p class="muted" style="margin:0 0 14px">દરેક વર્ષનું total income અને expense graph માં automatically દેખાશે.</p><div style="height:330px;position:relative"><canvas id="incomeExpenseChart" style="width:100%;height:100%"></canvas></div></div>`;renderIncomeExpenseChart()}
+function addM(k){const r={id:Date.now()+''};C[k].forEach(f=>r[f[0]]=$('#m_'+f[0]).value.trim());if(!r.name)return toast('Name is required');const L=D(k);L.push(r);S(k,L);money()}
+function renderIncomeExpenseChart(){
+ const cv=document.getElementById('incomeExpenseChart');if(!cv)return;const ctx=cv.getContext('2d');
+ const inc=D('income'),exp=D('expense'),g={};
+ [...inc.map(r=>({...r,_type:'income'})),...exp.map(r=>({...r,_type:'expense'}))].forEach(r=>{const y=(r.date||'').slice(0,4)||new Date().getFullYear();if(!/^\d{4}$/.test(y))return;if(!g[y])g[y]={income:0,expense:0};const a=Math.abs(+r.rs||0);g[y][r._type]+=a});
+ const ys=Object.keys(g).sort();
+ const dpr=window.devicePixelRatio||1,w=cv.clientWidth||700,h=cv.clientHeight||330;cv.width=w*dpr;cv.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+ if(!ys.length){ctx.font='15px sans-serif';ctx.fillStyle='#9aa4b2';ctx.textAlign='center';ctx.fillText('Add income or expense entries to see the yearly graph',w/2,h/2);return}
+ const pad={l:62,r:20,t:28,b:50},cw=w-pad.l-pad.r,ch=h-pad.t-pad.b,max=Math.max(...ys.flatMap(y=>[g[y].income,g[y].expense]),1);
+ ctx.strokeStyle='rgba(255,255,255,.10)';ctx.fillStyle='#9aa4b2';ctx.font='12px sans-serif';ctx.textAlign='right';
+ for(let i=0;i<=4;i++){const val=max*i/4,y=pad.t+ch-(ch*i/4);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();ctx.fillText('₹'+Math.round(val).toLocaleString('en-IN'),pad.l-8,y+4)}
+ const groupW=(w-pad.l-pad.r)/ys.length,barW=Math.min(32,groupW/3),base=pad.t+ch;
+ ys.forEach((year,i)=>{const cx=pad.l+groupW*i+groupW/2;const ih=(g[year].income/max)*ch,eh=(g[year].expense/max)*ch;ctx.fillStyle='#67e8f9';ctx.fillRect(cx-barW-3,base-ih,barW,ih);ctx.fillStyle='#f59e0b';ctx.fillRect(cx+3,base-eh,barW,eh);ctx.fillStyle='#9aa4b2';ctx.textAlign='center';ctx.fillText(year,cx,base+24)});
+ ctx.fillStyle='#67e8f9';ctx.fillRect(w-185,12,10,10);ctx.fillStyle='#d7dce5';ctx.textAlign='left';ctx.fillText('Income',w-170,22);ctx.fillStyle='#f59e0b';ctx.fillRect(w-100,12,10,10);ctx.fillStyle='#d7dce5';ctx.fillText('Expense',w-85,22);
+}
+window.addEventListener('resize',()=>{if(document.getElementById('incomeExpenseChart'))renderIncomeExpenseChart()})
+/* 5 Websites */
+function web(){const L=D('web');$('#main').innerHTML=`<h3 style="margin-top:0">Website links</h3><div class="row"><div><label>Title</label><input id="wt"></div><div><label>Link</label><input id="wu" placeholder="https://"></div><button onclick="addW()">Save</button></div>
+${L.length?L.map(w=>`<div class="item"><span class="t"><b>${E(w.t)}</b><br><a href="${E(w.u)}" target="_blank" rel="noopener noreferrer">${E(w.u)}</a></span><button class="x" onclick="S('web',D('web').filter(a=>a.id!='${w.id}'));web()">✕</button></div>`).join(''):'<div class="empty">No links saved yet.</div>'}<h3>Presentations (PPT)</h3><div id="fz"></div>`;files('ppt',$('#fz'))}
+function addW(){let u=$('#wu').value.trim();if(!u)return;if(!/^https?:\/\//i.test(u))u='https://'+u;const L=D('web');L.push({id:Date.now()+'',t:$('#wt').value.trim()||u,u});S('web',L);web()}
+/* 6 Notes */
+function notes(){$('#main').innerHTML=`<h3 style="margin-top:0">Notes</h3><textarea id="nt" rows="16" placeholder="Write anything here…">${E(D('notes',''))}</textarea><p style="color:var(--mut);font-size:.8rem">Saves automatically.</p>`;$('#nt').oninput=e=>S('notes',e.target.value)}
+welcome();
+</script></body></html>
